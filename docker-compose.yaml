@@ -1,0 +1,53 @@
+version: '2'
+
+networks:
+  my-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
+services:
+  openldap:
+    image: bitnami/openldap:2
+    restart: always
+    ports:
+      - '1389:1389'
+      - '1636:1636'
+    environment:
+      - LDAP_ADMIN_USERNAME=admin
+      - LDAP_ADMIN_PASSWORD=adminpassword
+      - LDAP_USERS=customuser
+      - LDAP_PASSWORDS=custompassword
+      - LDAP_ROOT=dc=aldi-backup,dc=local
+      - LDAP_ADMIN_DN=cn=admin,dc=aldi-backup,dc=local
+    networks:
+      my-network:
+        ipv4_address: 10.5.0.2
+    volumes:
+      - ./.openldap_data:/bitnami/openldap
+  postgres:
+    image: bitnami/postgresql
+    restart: always
+    volumes:
+      - ./.postgres:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=r00t
+      - POSTGRESQL_DATABASE=db-keycloak
+    networks:
+      my-network:
+        ipv4_address: 10.5.0.3
+  portainer:
+    image: portainer/portainer-ce:latest
+    restart: always
+    ports:
+      - '9000:9000'
+      - '8000:8000'
+      - '9443:9443'
+    volumes:
+      - ./.portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+

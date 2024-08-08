@@ -1,0 +1,4 @@
+.openldap_data/
+.portainer_data/
+.postgres/
+
